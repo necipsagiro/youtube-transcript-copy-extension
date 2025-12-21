@@ -5,7 +5,7 @@ A browser extension that lets you copy YouTube video transcripts via the right-c
 ## Browser Support
 
 - **Chrome** / Chromium-based browsers
-- **Firefox** 128+
+- **Firefox** 140+
 
 ## Installation
 
@@ -57,6 +57,9 @@ pnpm dev:chrome
 
 # Build for both browsers
 pnpm build
+
+# Lint (validate manifest for Firefox AMO)
+pnpm lint
 ```
 
 ## Disclaimer

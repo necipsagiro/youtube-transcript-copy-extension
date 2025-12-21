@@ -1,3 +1,6 @@
+// Namespace Polyfill
+const runtime = typeof browser !== 'undefined' ? browser : chrome;
+
 let capturedSubtitles = null;
 
 function msToTime(ms) {
@@ -76,7 +79,7 @@ function getLanguageFromUrl(url) {
   }
 }
 
-chrome.runtime.onMessage.addListener(async (message) => {
+runtime.runtime.onMessage.addListener(async (message) => {
   if (message.action === 'copyTranscript' && capturedSubtitles) {
     try {
       const text = segmentsToReadableText(capturedSubtitles);
@@ -101,7 +104,7 @@ window.addEventListener('yt-transcript-data-captured', (event) => {
 
     capturedSubtitles = segments;
     console.log('[YT Transcript] Captured', segments.length, 'segments, sending to background');
-    chrome.runtime.sendMessage({ action: 'subtitlesAvailable', lang: lang.toUpperCase() });
+    runtime.runtime.sendMessage({ action: 'subtitlesAvailable', lang: lang.toUpperCase() });
   } catch (e) {
     console.error('[YT Transcript] Failed:', e);
   }

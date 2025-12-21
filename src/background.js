@@ -1,5 +1,8 @@
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
+// Namespace Polyfill - Firefox (browser) ve Chrome (chrome) uyumluluğu
+const runtime = typeof browser !== 'undefined' ? browser : chrome;
+
+runtime.runtime.onInstalled.addListener(() => {
+  runtime.contextMenus.create({
     id: 'yt-copy-transcript',
     title: 'Copy Transcript',
     contexts: ['page'],
@@ -8,24 +11,26 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+runtime.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'yt-copy-transcript') {
-    chrome.tabs.sendMessage(tab.id, { action: 'copyTranscript' });
+    runtime.tabs.sendMessage(tab.id, { action: 'copyTranscript' });
   }
 });
 
-chrome.runtime.onMessage.addListener((message) => {
+runtime.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'subtitlesAvailable') {
     console.log('[YT Transcript BG] Received message, updating menu to:', message.lang);
-    chrome.contextMenus.update('yt-copy-transcript', {
+    runtime.contextMenus.update('yt-copy-transcript', {
       enabled: true,
       title: `Copy Transcript [${message.lang || '?'}]`
     }, () => {
-      if (chrome.runtime.lastError) {
-        console.error('[YT Transcript BG] Menu update failed:', chrome.runtime.lastError);
+      if (runtime.runtime.lastError) {
+        console.error('[YT Transcript BG] Menu update failed:', runtime.runtime.lastError);
       } else {
         console.log('[YT Transcript BG] Menu updated successfully');
       }
     });
   }
+  // Asenkron yanıt için true döndür
+  return true;
 });
