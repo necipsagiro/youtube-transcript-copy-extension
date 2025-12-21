@@ -1,13 +1,27 @@
 # YouTube Transcript Copy
 
-A Chrome extension that lets you copy YouTube video transcripts via the right-click menu.
+A browser extension that lets you copy YouTube video transcripts via the right-click menu.
+
+## Browser Support
+
+- **Chrome** / Chromium-based browsers
+- **Firefox** 128+
 
 ## Installation
+
+### Chrome
 
 1. Clone this repo
 2. Open `chrome://extensions`
 3. Enable "Developer mode"
-4. Click "Load unpacked" and select this folder
+4. Click "Load unpacked" and select the `src` folder
+
+### Firefox
+
+1. Clone this repo
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click "Load Temporary Add-on"
+4. Select any file inside the `src` folder (e.g., `manifest.json`)
 
 ## Usage
 
@@ -28,6 +42,22 @@ The transcript is copied with timestamps:
 ## How it works
 
 The extension intercepts YouTube's subtitle requests using XMLHttpRequest hooks, then fetches and formats the transcript when you click the context menu item.
+
+## Development
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run in Firefox
+pnpm dev:firefox
+
+# Run in Chrome
+pnpm dev:chrome
+
+# Build for both browsers
+pnpm build
+```
 
 ## Disclaimer
 
