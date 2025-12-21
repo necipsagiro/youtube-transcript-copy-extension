@@ -1,4 +1,4 @@
-// YouTube Player Bridge - Intercepts subtitle URLs
+// YouTube Player Bridge - Intercepts subtitle responses
 
 const originalOpen = XMLHttpRequest.prototype.open;
 const originalSend = XMLHttpRequest.prototype.send;
@@ -16,11 +16,12 @@ XMLHttpRequest.prototype.send = function(body) {
       !url.includes('type=list') &&
       url.includes('lang=')) {
 
-    console.log('[YT Transcript] Captured subtitle URL:', url);
-
-    window.dispatchEvent(new CustomEvent('yt-transcript-url-captured', {
-      detail: { url }
-    }));
+    this.addEventListener('load', function() {
+      console.log('[YT Transcript] Captured subtitle response for:', url);
+      window.dispatchEvent(new CustomEvent('yt-transcript-data-captured', {
+        detail: { url, data: this.responseText }
+      }));
+    });
   }
 
   return originalSend.apply(this, [body]);

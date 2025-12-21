@@ -58,23 +58,13 @@ function segmentsToReadableText(segments) {
     .join('\n');
 }
 
-async function fetchSubtitles(url) {
-  const response = await fetch(url);
-  const text = await response.text();
-
-  let segments;
+function parseSubtitleData(text) {
   try {
     const json = JSON.parse(text);
-    segments = parseJsonSubtitles(json);
+    return parseJsonSubtitles(json);
   } catch {
-    segments = parseXmlSubtitles(text);
+    return parseXmlSubtitles(text);
   }
-
-  if (segments.length === 0) {
-    throw new Error('No subtitles found');
-  }
-
-  return segments;
 }
 
 function getLanguageFromUrl(url) {
@@ -97,10 +87,20 @@ chrome.runtime.onMessage.addListener(async (message) => {
   }
 });
 
-window.addEventListener('yt-transcript-url-captured', async (event) => {
+window.addEventListener('yt-transcript-data-captured', (event) => {
   try {
-    const lang = getLanguageFromUrl(event.detail.url);
-    capturedSubtitles = await fetchSubtitles(event.detail.url);
+    const { url, data } = event.detail;
+    const lang = getLanguageFromUrl(url);
+    console.log('[YT Transcript] Language detected:', lang);
+
+    const segments = parseSubtitleData(data);
+    if (segments.length === 0) {
+      console.log('[YT Transcript] No segments found, skipping');
+      return;
+    }
+
+    capturedSubtitles = segments;
+    console.log('[YT Transcript] Captured', segments.length, 'segments, sending to background');
     chrome.runtime.sendMessage({ action: 'subtitlesAvailable', lang: lang.toUpperCase() });
   } catch (e) {
     console.error('[YT Transcript] Failed:', e);
