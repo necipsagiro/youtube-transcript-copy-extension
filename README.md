@@ -35,7 +35,8 @@ This extension is for personal use only. Use at your own risk.
 
 ## Credits
 
-The XMLHttpRequest interception technique is inspired by [Kagi Translate](https://kagi.com/translate) browser extension.
+- The XMLHttpRequest interception technique is inspired by [Kagi Translate](https://kagi.com/translate) browser extension.
+- Subtitle JSON structure reference: [yt-timedtext-srt](https://github.com/nuhman/yt-timedtext-srt)
 
 ## Privacy Policy
 
