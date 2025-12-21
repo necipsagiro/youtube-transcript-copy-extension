@@ -1,2 +1,4 @@
 .DS_Store
-extension.zip
+node_modules/
+dist/
+web-ext-artifacts/

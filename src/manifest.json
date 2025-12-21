@@ -3,6 +3,12 @@
   "name": "YouTube Transcript Copy",
   "version": "1.0",
   "description": "Copy YouTube subtitles via right-click menu",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "parsers_frailer8k@icloud.com",
+      "strict_min_version": "128.0"
+    }
+  },
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -14,7 +20,8 @@
     "https://*.youtube.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
   },
   "content_scripts": [
     {
