@@ -7,7 +7,7 @@
     "dev:firefox": "web-ext run -s src",
     "dev:chrome": "web-ext run -s src --target=chromium",
     "build": "pnpm build:firefox && pnpm build:chrome",
-    "build:firefox": "web-ext build -s src -a dist",
+    "build:firefox": "web-ext build -s src -a dist --overwrite-dest",
     "build:chrome": "cd src && zip -r ../dist/chrome-extension.zip . -x '*.DS_Store'"
   },
   "devDependencies": {
