@@ -36,3 +36,7 @@ This extension is for personal use only. Use at your own risk.
 ## Credits
 
 The XMLHttpRequest interception technique is inspired by [Kagi Translate](https://kagi.com/translate) browser extension.
+
+## Privacy Policy
+
+This extension does not collect, store, or transmit any user data. All operations are performed locally in your browser. The extension only accesses YouTube subtitle data when you explicitly request it via the context menu, and this data is copied directly to your clipboard without being sent anywhere.
