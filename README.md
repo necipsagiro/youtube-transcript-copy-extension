@@ -12,9 +12,10 @@ A Chrome extension that lets you copy YouTube video transcripts via the right-cl
 ## Usage
 
 1. Go to any YouTube video with subtitles
-2. Right-click anywhere on the page
-3. Click "Copy Transcript [LANG]"
-4. Paste wherever you need it
+2. **Enable subtitles on the video** (the context menu item only becomes active after subtitles are turned on)
+3. Right-click anywhere on the page
+4. Click "Copy Transcript [LANG]"
+5. Paste wherever you need it
 
 The transcript is copied with timestamps:
 
