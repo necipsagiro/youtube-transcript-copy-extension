@@ -17,20 +17,22 @@ runtime.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-runtime.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'subtitlesAvailable') {
-    console.log('[YT Transcript BG] Received message, updating menu to:', message.lang);
-    runtime.contextMenus.update('yt-copy-transcript', {
-      enabled: true,
-      title: `Copy Transcript [${message.lang || '?'}]`
-    }, () => {
-      if (runtime.runtime.lastError) {
-        console.error('[YT Transcript BG] Menu update failed:', runtime.runtime.lastError);
-      } else {
-        console.log('[YT Transcript BG] Menu updated successfully');
-      }
-    });
+runtime.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
+  if (message.action !== 'subtitlesAvailable') {
+    return true;
   }
-  // Asenkron yanıt için true döndür
+
+  console.log('[YT Transcript BG] Received message, updating menu to:', message.lang);
+  runtime.contextMenus.update('yt-copy-transcript', {
+    enabled: true,
+    title: `Copy Transcript [${message.lang || '?'}]`
+  }, () => {
+    if (runtime.runtime.lastError) {
+      console.error('[YT Transcript BG] Menu update failed:', runtime.runtime.lastError);
+    } else {
+      console.log('[YT Transcript BG] Menu updated successfully');
+    }
+  });
+
   return true;
 });
