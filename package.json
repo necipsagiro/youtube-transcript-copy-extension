@@ -1,6 +1,5 @@
 {
   "name": "youtube-transcript-copy",
-  "version": "1.0.0",
   "description": "Copy YouTube subtitles via right-click menu",
   "private": true,
   "scripts": {
