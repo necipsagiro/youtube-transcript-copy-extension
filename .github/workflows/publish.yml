@@ -110,7 +110,7 @@ jobs:
           echo "Upload response:"
           echo "$UPLOAD_RESPONSE" | jq .
 
-          if [ "$UPLOAD_STATE" != "SUCCESS" ]; then
+          if [ "$UPLOAD_STATE" != "SUCCEEDED" ]; then
             echo "Upload failed with state: $UPLOAD_STATE"
             exit 1
           fi
