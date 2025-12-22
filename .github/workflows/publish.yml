@@ -98,6 +98,19 @@ jobs:
           fi
           echo "Access token obtained successfully"
 
+          # Cancel any pending submission (if exists)
+          echo "Canceling any pending submission..."
+          CANCEL_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+            -H "x-goog-api-version: 2" \
+            "https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:cancelSubmission")
+
+          if echo "$CANCEL_RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
+            echo "No pending submission to cancel (or already published)"
+          else
+            echo "Pending submission canceled"
+          fi
+
           # Upload package using v2 API
           echo "Uploading extension package..."
           UPLOAD_RESPONSE=$(curl -s -X POST \
