@@ -1,4 +1,4 @@
-name: Publish to Chrome Web Store
+name: Publish Extensions
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
 
 jobs:
   publish:
-    name: Build and Publish Extension
+    name: Build and Publish Extensions
     runs-on: ubuntu-latest
     permissions:
       contents: write # to push the tag
       id-token: write # for OIDC
     concurrency:
-      group: chrome-publish
+      group: extension-publish
       cancel-in-progress: true
 
     steps:
@@ -60,18 +60,30 @@ jobs:
         if: steps.version_check.outputs.publish == 'true'
         run: pnpm install
 
-      - name: Build the extension
+      - name: Build Chrome extension
         if: steps.version_check.outputs.publish == 'true'
         run: pnpm run build:chrome
 
-      - name: Upload build artifact
+      - name: Build Firefox extension
+        if: steps.version_check.outputs.publish == 'true'
+        run: pnpm run build:firefox
+
+      - name: Upload Chrome build artifact
         if: steps.version_check.outputs.publish == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: chrome-extension
           path: dist/chrome-extension.zip
 
-      - name: Upload and Publish (Chrome Web Store API v2)
+      - name: Upload Firefox build artifact
+        if: steps.version_check.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: firefox-extension
+          path: dist/*.zip
+          exclude: dist/chrome-extension.zip
+
+      - name: Publish to Chrome Web Store
         if: steps.version_check.outputs.publish == 'true'
         env:
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
@@ -146,7 +158,16 @@ jobs:
             echo "Publish failed"
             exit 1
           fi
-          echo "Extension published successfully"
+          echo "Chrome extension published successfully"
+
+      - name: Publish to Firefox Add-ons
+        if: steps.version_check.outputs.publish == 'true'
+        uses: wdzeng/firefox-addon@v1
+        with:
+          addon-guid: parsers_frailer8k@icloud.com
+          xpi-path: dist/youtube_transcript_copy-*.zip
+          jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
 
       - name: Create and Push Git Tag
         if: steps.version_check.outputs.publish == 'true'
@@ -167,4 +188,5 @@ jobs:
           gh release create "v${VERSION}" \
             --title "v${VERSION}" \
             --generate-notes \
-            dist/chrome-extension.zip
+            dist/chrome-extension.zip \
+            dist/youtube_transcript_copy-*.zip
