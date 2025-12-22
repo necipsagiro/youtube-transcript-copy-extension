@@ -80,8 +80,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
-          path: dist/*.zip
-          exclude: dist/chrome-extension.zip
+          path: dist/youtube_transcript_copy-*.zip
 
       - name: Publish to Chrome Web Store
         if: steps.version_check.outputs.publish == 'true'
