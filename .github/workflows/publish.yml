@@ -26,7 +26,7 @@ jobs:
         id: version_check
         run: |
           set -euo pipefail
-          VERSION=$(node -p "require('./package.json').version")
+          VERSION=$(node -p "require('./src/manifest.json').version")
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           LATEST_TAG=$(git tag --list 'v*' | sed 's/^v//' | sort -V | tail -1)
           if [ -z "$LATEST_TAG" ]; then
@@ -144,3 +144,14 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "v${VERSION}"
           git push origin "v${VERSION}"
+
+      - name: Create GitHub Release
+        if: steps.version_check.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${{ steps.version_check.outputs.version }}
+          gh release create "v${VERSION}" \
+            --title "v${VERSION}" \
+            --generate-notes \
+            dist/chrome-extension.zip

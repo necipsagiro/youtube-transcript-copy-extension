@@ -45,6 +45,8 @@ The extension intercepts YouTube's subtitle requests using XMLHttpRequest hooks,
 
 ## Development
 
+**Note:** Version is managed in `src/manifest.json`, not `package.json`.
+
 ```bash
 # Install dependencies
 pnpm install
