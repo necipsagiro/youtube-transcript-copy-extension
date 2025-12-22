@@ -1,0 +1,93 @@
+name: Publish to Chrome Web Store
+
+on:
+  push:
+    branches:
+      - main # Trigger on pushes to the main branch
+
+jobs:
+  publish:
+    name: Build and Publish Extension
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # to push the tag
+      id-token: write # for OIDC
+    concurrency:
+      group: chrome-publish
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetches all history for tag checking
+
+      - name: Check Version and Prepare for Publish
+        id: version_check
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          LATEST_TAG=$(git tag --list 'v*' | sed 's/^v//' | sort -V | tail -1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No release tags found. Proceeding to publish v${VERSION}."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          HIGHEST_VERSION=$(printf '%s\n' "${LATEST_TAG}" "${VERSION}" | sort -V | tail -1)
+          if [ "${HIGHEST_VERSION}" != "${VERSION}" ] || [ "${LATEST_TAG}" = "${VERSION}" ]; then
+            echo "Version ${VERSION} is not newer than latest tag ${LATEST_TAG}. Skipping publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Version ${VERSION} is new and greater than ${LATEST_TAG}. Proceeding to publish."
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node.js
+        if: steps.version_check.outputs.publish == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install pnpm
+        if: steps.version_check.outputs.publish == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        if: steps.version_check.outputs.publish == 'true'
+        run: pnpm install
+
+      - name: Build the extension
+        if: steps.version_check.outputs.publish == 'true'
+        run: pnpm run build:chrome
+
+      - name: Upload build artifact
+        if: steps.version_check.outputs.publish == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-extension
+          path: dist/chrome-extension.zip
+
+      - name: Upload and Publish
+        if: steps.version_check.outputs.publish == 'true'
+        uses: mnao305/chrome-extension-upload@v5.0.0
+        with:
+          file-path: dist/chrome-extension.zip
+          extension-id: ichjlgiokafoajibekeagidekmlednoi
+          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          publish: true
+
+      - name: Create and Push Git Tag
+        if: steps.version_check.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          VERSION=${{ steps.version_check.outputs.version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
