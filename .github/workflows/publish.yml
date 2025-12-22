@@ -58,7 +58,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.version_check.outputs.publish == 'true'
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build Chrome extension
         if: steps.version_check.outputs.publish == 'true'
