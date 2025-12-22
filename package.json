@@ -9,7 +9,7 @@
     "build": "pnpm build:firefox && pnpm build:chrome",
     "lint": "web-ext lint -s src",
     "build:firefox": "web-ext build -s src -a dist --overwrite-dest",
-    "build:chrome": "cd src && zip -r ../dist/chrome-extension.zip . -x '*.DS_Store'"
+    "build:chrome": "mkdir -p dist && cd src && zip -r ../dist/chrome-extension.zip . -x '*.DS_Store'"
   },
   "devDependencies": {
     "web-ext": "^9.2.0"
