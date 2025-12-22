@@ -68,6 +68,11 @@ pnpm lint
 
 This extension is for personal use only. Use at your own risk.
 
+## Available On
+
+- **Chrome Web Store:** [YouTube Transcript Copy](https://chromewebstore.google.com/detail/youtube-transcript-copy/ichjlgiokafoajibekeagidekmlednoi)
+- **Firefox Add-ons:** [YouTube Copy Transcript](https://addons.mozilla.org/en-US/firefox/addon/youtube-copy-transcript/)
+
 ## Credits
 
 - The XMLHttpRequest interception technique is inspired by [Kagi Translate](https://kagi.com/translate) browser extension.
