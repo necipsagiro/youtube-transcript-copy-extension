@@ -1,6 +1,6 @@
 # YouTube Transcript Copy
 
-A browser extension that lets you copy YouTube video transcripts via the right-click menu.
+A browser extension that lets you copy YouTube video transcripts and clean video links via the right-click menu.
 
 ## Browser Support
 
@@ -25,6 +25,8 @@ A browser extension that lets you copy YouTube video transcripts via the right-c
 
 ## Usage
 
+### Copy Transcript
+
 1. Go to any YouTube video with subtitles
 2. **Enable subtitles on the video** (the context menu item only becomes active after subtitles are turned on)
 3. Right-click anywhere on the page
@@ -38,6 +40,15 @@ The transcript is copied with timestamps:
 [0:03] Welcome to this video
 [0:07] Today we'll talk about...
 ```
+
+### Copy Video URL
+
+1. Go to any YouTube video or Shorts
+2. Right-click anywhere on the page
+3. Click "Copy video URL"
+4. Paste the clean URL (e.g., `https://youtu.be/VIDEO_ID`)
+
+This copies a clean short URL without tracking parameters (like `si=`, `utm_source`, etc.).
 
 ## How it works
 

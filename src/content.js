@@ -79,6 +79,32 @@ function getLanguageFromUrl(url) {
   }
 }
 
+function isVideoPage() {
+  const url = window.location.href;
+  return url.includes('/watch?') || url.includes('/shorts/');
+}
+
+function getVideoId() {
+  const url = new URL(window.location.href);
+
+  // /watch?v=VIDEO_ID
+  const vParam = url.searchParams.get('v');
+  if (vParam) return vParam;
+
+  // /shorts/VIDEO_ID
+  const shortsMatch = url.pathname.match(/\/shorts\/([^/?]+)/);
+  if (shortsMatch) return shortsMatch[1];
+
+  return null;
+}
+
+function notifyVideoPage() {
+  runtime.runtime.sendMessage({
+    action: 'videoPageDetected',
+    isVideoPage: isVideoPage()
+  });
+}
+
 runtime.runtime.onMessage.addListener(async (message) => {
   if (message.action === 'copyTranscript' && capturedSubtitles) {
     try {
@@ -86,6 +112,15 @@ runtime.runtime.onMessage.addListener(async (message) => {
       await navigator.clipboard.writeText(text);
     } catch {
       alert('Failed to copy transcript');
+    }
+  } else if (message.action === 'copyVideoLink') {
+    const videoId = getVideoId();
+    if (videoId) {
+      try {
+        await navigator.clipboard.writeText(`https://youtu.be/${videoId}`);
+      } catch {
+        alert('Failed to copy video link');
+      }
     }
   }
 });
@@ -109,3 +144,7 @@ window.addEventListener('yt-transcript-data-captured', (event) => {
     console.error('[YT Transcript] Failed:', e);
   }
 });
+
+// Detect video page on initial load and YouTube SPA navigation
+notifyVideoPage();
+window.addEventListener('yt-navigate-finish', notifyVideoPage);
