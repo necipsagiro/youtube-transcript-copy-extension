@@ -3,196 +3,25 @@ name: Publish Extensions
 on:
   push:
     branches:
-      - main # Trigger on pushes to the main branch
+      - main
 
 jobs:
   publish:
-    name: Build and Publish Extensions
     runs-on: ubuntu-latest
     permissions:
-      contents: write # to push the tag
-      id-token: write # for OIDC
+      contents: write
+      id-token: write
     concurrency:
       group: extension-publish
       cancel-in-progress: true
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: necipsagiro/browser-extension-publish-action@v1
         with:
-          fetch-depth: 0 # Fetches all history for tag checking
-
-      - name: Check Version and Prepare for Publish
-        id: version_check
-        run: |
-          set -euo pipefail
-          VERSION=$(node -p "require('./src/manifest.json').version")
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-
-          # Read Firefox GUID from manifest
-          FIREFOX_GUID=$(node -p "require('./src/manifest.json').browser_specific_settings?.gecko?.id || ''")
-          if [ -n "$FIREFOX_GUID" ]; then
-            echo "firefox_guid=${FIREFOX_GUID}" >> $GITHUB_OUTPUT
-          fi
-
-          LATEST_TAG=$(git tag --list 'v*' | sed 's/^v//' | sort -V | tail -1)
-          if [ -z "$LATEST_TAG" ]; then
-            echo "No release tags found. Proceeding to publish v${VERSION}."
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          HIGHEST_VERSION=$(printf '%s\n' "${LATEST_TAG}" "${VERSION}" | sort -V | tail -1)
-          if [ "${HIGHEST_VERSION}" != "${VERSION}" ] || [ "${LATEST_TAG}" = "${VERSION}" ]; then
-            echo "Version ${VERSION} is not newer than latest tag ${LATEST_TAG}. Skipping publish."
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Version ${VERSION} is new and greater than ${LATEST_TAG}. Proceeding to publish."
-          echo "publish=true" >> "$GITHUB_OUTPUT"
-
-      - name: Set up pnpm
-        if: steps.version_check.outputs.publish == 'true'
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Set up Node.js
-        if: steps.version_check.outputs.publish == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        if: steps.version_check.outputs.publish == 'true'
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Chrome extension
-        if: steps.version_check.outputs.publish == 'true'
-        run: pnpm run build:chrome
-
-      - name: Build Firefox extension
-        if: steps.version_check.outputs.publish == 'true'
-        run: pnpm run build:firefox
-
-      - name: Upload Chrome build artifact
-        if: steps.version_check.outputs.publish == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: chrome-extension
-          path: dist/chrome-extension.zip
-
-      - name: Upload Firefox build artifact
-        if: steps.version_check.outputs.publish == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: firefox-extension
-          path: dist/firefox-extension.zip
-
-      - name: Publish to Chrome Web Store
-        if: steps.version_check.outputs.publish == 'true'
-        env:
-          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
-          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
-          PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
-          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
-        run: |
-          set -euo pipefail
-
-          # Get access token
-          echo "Getting access token..."
-          TOKEN_RESPONSE=$(curl -s -X POST https://oauth2.googleapis.com/token \
-            -d "client_id=${CLIENT_ID}" \
-            -d "client_secret=${CLIENT_SECRET}" \
-            -d "refresh_token=${REFRESH_TOKEN}" \
-            -d "grant_type=refresh_token")
-
-          ACCESS_TOKEN=$(echo "$TOKEN_RESPONSE" | jq -r '.access_token')
-          if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
-            echo "Failed to get access token:"
-            echo "$TOKEN_RESPONSE" | jq .
-            exit 1
-          fi
-          echo "Access token obtained successfully"
-
-          # Cancel any pending submission (if exists)
-          echo "Canceling any pending submission..."
-          CANCEL_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            -H "x-goog-api-version: 2" \
-            "https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:cancelSubmission")
-
-          if echo "$CANCEL_RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
-            echo "No pending submission to cancel (or already published)"
-          else
-            echo "Pending submission canceled"
-          fi
-
-          # Upload package using v2 API
-          echo "Uploading extension package..."
-          UPLOAD_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            -H "x-goog-api-version: 2" \
-            -T dist/chrome-extension.zip \
-            "https://chromewebstore.googleapis.com/upload/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:upload")
-
-          UPLOAD_STATE=$(echo "$UPLOAD_RESPONSE" | jq -r '.uploadState')
-          echo "Upload response:"
-          echo "$UPLOAD_RESPONSE" | jq .
-
-          if [ "$UPLOAD_STATE" != "SUCCEEDED" ]; then
-            echo "Upload failed with state: $UPLOAD_STATE"
-            exit 1
-          fi
-          echo "Upload successful"
-
-          # Publish using v2 API
-          echo "Publishing extension..."
-          PUBLISH_RESPONSE=$(curl -s -X POST \
-            -H "Authorization: Bearer ${ACCESS_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -H "x-goog-api-version: 2" \
-            -d '{"publishType": "DEFAULT_PUBLISH"}' \
-            "https://chromewebstore.googleapis.com/v2/publishers/${PUBLISHER_ID}/items/${EXTENSION_ID}:publish")
-
-          echo "Publish response:"
-          echo "$PUBLISH_RESPONSE" | jq .
-
-          # Check for errors
-          if echo "$PUBLISH_RESPONSE" | jq -e '.error' > /dev/null 2>&1; then
-            echo "Publish failed"
-            exit 1
-          fi
-          echo "Chrome extension published successfully"
-
-      - name: Publish to Firefox Add-ons
-        if: steps.version_check.outputs.publish == 'true'
-        uses: wdzeng/firefox-addon@v1
-        with:
-          addon-guid: ${{ steps.version_check.outputs.firefox_guid }}
-          xpi-path: dist/firefox-extension.zip
-          jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
-          jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
-
-      - name: Create and Push Git Tag
-        if: steps.version_check.outputs.publish == 'true'
-        run: |
-          set -euo pipefail
-          VERSION=${{ steps.version_check.outputs.version }}
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "v${VERSION}"
-          git push origin "v${VERSION}"
-
-      - name: Create GitHub Release
-        if: steps.version_check.outputs.publish == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          VERSION=${{ steps.version_check.outputs.version }}
-          gh release create "v${VERSION}" \
-            --title "v${VERSION}" \
-            --generate-notes \
-            dist/chrome-extension.zip \
-            dist/firefox-extension.zip
+          chrome-client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          chrome-client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
+          chrome-refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
+          chrome-publisher-id: ${{ secrets.CHROME_PUBLISHER_ID }}
+          chrome-extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
+          firefox-jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
+          firefox-jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
