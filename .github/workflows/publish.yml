@@ -87,7 +87,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: firefox-extension
-          path: dist/youtube_transcript_copy-*.zip
+          path: dist/firefox-extension.zip
 
       - name: Publish to Chrome Web Store
         if: steps.version_check.outputs.publish == 'true'
@@ -171,7 +171,7 @@ jobs:
         uses: wdzeng/firefox-addon@v1
         with:
           addon-guid: ${{ steps.version_check.outputs.firefox_guid }}
-          xpi-path: dist/youtube_transcript_copy-*.zip
+          xpi-path: dist/firefox-extension.zip
           jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
           jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
 
@@ -195,4 +195,4 @@ jobs:
             --title "v${VERSION}" \
             --generate-notes \
             dist/chrome-extension.zip \
-            dist/youtube_transcript_copy-*.zip
+            dist/firefox-extension.zip

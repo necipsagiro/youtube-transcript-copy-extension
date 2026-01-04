@@ -7,7 +7,7 @@
     "dev:chrome": "web-ext run -s src --target=chromium",
     "build": "pnpm build:firefox && pnpm build:chrome",
     "lint": "web-ext lint -s src",
-    "build:firefox": "web-ext build -s src -a dist --overwrite-dest",
+    "build:firefox": "find dist -name '*.zip' ! -name 'chrome-extension.zip' -delete; web-ext build -s src -a dist --overwrite-dest && mv $(ls dist/*.zip | grep -v chrome-extension) dist/firefox-extension.zip",
     "build:chrome": "mkdir -p dist && cd src && zip -r ../dist/chrome-extension.zip . -x '*.DS_Store'"
   },
   "devDependencies": {
