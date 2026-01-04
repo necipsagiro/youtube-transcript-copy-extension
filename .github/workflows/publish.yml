@@ -28,6 +28,13 @@ jobs:
           set -euo pipefail
           VERSION=$(node -p "require('./src/manifest.json').version")
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          # Read Firefox GUID from manifest
+          FIREFOX_GUID=$(node -p "require('./src/manifest.json').browser_specific_settings?.gecko?.id || ''")
+          if [ -n "$FIREFOX_GUID" ]; then
+            echo "firefox_guid=${FIREFOX_GUID}" >> $GITHUB_OUTPUT
+          fi
+
           LATEST_TAG=$(git tag --list 'v*' | sed 's/^v//' | sort -V | tail -1)
           if [ -z "$LATEST_TAG" ]; then
             echo "No release tags found. Proceeding to publish v${VERSION}."
@@ -89,7 +96,7 @@ jobs:
           CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
           PUBLISHER_ID: ${{ secrets.CHROME_PUBLISHER_ID }}
-          EXTENSION_ID: ichjlgiokafoajibekeagidekmlednoi
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
         run: |
           set -euo pipefail
 
@@ -163,7 +170,7 @@ jobs:
         if: steps.version_check.outputs.publish == 'true'
         uses: wdzeng/firefox-addon@v1
         with:
-          addon-guid: parsers_frailer8k@icloud.com
+          addon-guid: ${{ steps.version_check.outputs.firefox_guid }}
           xpi-path: dist/youtube_transcript_copy-*.zip
           jwt-issuer: ${{ secrets.FIREFOX_JWT_ISSUER }}
           jwt-secret: ${{ secrets.FIREFOX_JWT_SECRET }}
