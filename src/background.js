@@ -6,7 +6,7 @@ runtime.runtime.onInstalled.addListener(() => {
     id: 'yt-copy-transcript',
     title: 'Copy Transcript',
     contexts: ['page'],
-    documentUrlPatterns: ['https://www.youtube.com/*', 'https://youtube.com/*'],
+    documentUrlPatterns: ['https://www.youtube.com/watch*', 'https://youtube.com/watch*'],
     enabled: false
   });
 
@@ -14,7 +14,7 @@ runtime.runtime.onInstalled.addListener(() => {
     id: 'yt-copy-video-link',
     title: 'Copy video URL',
     contexts: ['page'],
-    documentUrlPatterns: ['https://www.youtube.com/*', 'https://youtube.com/*'],
+    documentUrlPatterns: ['https://www.youtube.com/watch*', 'https://youtube.com/watch*'],
     enabled: false
   });
 });
