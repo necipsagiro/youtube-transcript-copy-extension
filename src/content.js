@@ -14,7 +14,15 @@ function msToTime(ms) {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
-function parseJsonSubtitles(json) {
+function segmentsToReadableText(segments) {
+  return segments
+    .map(seg => `[${msToTime(seg.start)}] ${seg.text}`)
+    .join('\n');
+}
+
+function parseSubtitleData(text) {
+  const json = JSON.parse(text);
+
   const events = json.events || [];
   const segments = [];
 
@@ -37,114 +45,30 @@ function parseJsonSubtitles(json) {
   return segments;
 }
 
-function parseXmlSubtitles(xmlText) {
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(xmlText, 'text/xml');
-  const textElements = xml.querySelectorAll('text');
-  const segments = [];
-
-  textElements.forEach(el => {
-    const start = parseFloat(el.getAttribute('start')) * 1000;
-    const text = el.textContent.trim();
-
-    if (text) {
-      segments.push({ start, text });
-    }
-  });
-
-  return segments;
-}
-
-function segmentsToReadableText(segments) {
-  return segments
-    .map(seg => `[${msToTime(seg.start)}] ${seg.text}`)
-    .join('\n');
-}
-
-function parseSubtitleData(text) {
-  try {
-    const json = JSON.parse(text);
-    return parseJsonSubtitles(json);
-  } catch {
-    return parseXmlSubtitles(text);
-  }
-}
-
 function getLanguageFromUrl(url) {
-  try {
-    const urlObj = new URL(url);
-    return urlObj.searchParams.get('lang') || 'unknown';
-  } catch {
-    return 'unknown';
-  }
-}
-
-function isVideoPage() {
-  const url = window.location.href;
-  return url.includes('/watch?') || url.includes('/shorts/');
-}
-
-function getVideoId() {
-  const url = new URL(window.location.href);
-
-  // /watch?v=VIDEO_ID
-  const vParam = url.searchParams.get('v');
-  if (vParam) return vParam;
-
-  // /shorts/VIDEO_ID
-  const shortsMatch = url.pathname.match(/\/shorts\/([^/?]+)/);
-  if (shortsMatch) return shortsMatch[1];
-
-  return null;
-}
-
-function notifyVideoPage() {
-  runtime.runtime.sendMessage({
-    action: 'videoPageDetected',
-    isVideoPage: isVideoPage()
-  });
+  const urlObj = new URL(url);
+  return urlObj.searchParams.get('tlang') || urlObj.searchParams.get('lang') || 'unknown';
 }
 
 runtime.runtime.onMessage.addListener(async (message) => {
   if (message.action === 'copyTranscript' && capturedSubtitles) {
-    try {
-      const text = segmentsToReadableText(capturedSubtitles);
-      await navigator.clipboard.writeText(text);
-    } catch {
-      alert('Failed to copy transcript');
-    }
-  } else if (message.action === 'copyVideoLink') {
-    const videoId = getVideoId();
-    if (videoId) {
-      try {
-        await navigator.clipboard.writeText(`https://youtu.be/${videoId}`);
-      } catch {
-        alert('Failed to copy video link');
-      }
-    }
+    const text = segmentsToReadableText(capturedSubtitles);
+    await navigator.clipboard.writeText(text);
   }
 });
 
 window.addEventListener('yt-transcript-data-captured', (event) => {
-  try {
-    const { url, data } = event.detail;
-    const lang = getLanguageFromUrl(url);
-    console.log('[YT Transcript] Language detected:', lang);
+  const { url, data } = event.detail;
+  const lang = getLanguageFromUrl(url);
+  console.log('[YT Transcript] Language detected:', lang);
 
-    const segments = parseSubtitleData(data);
-    if (segments.length === 0) {
-      console.log('[YT Transcript] No segments found, skipping');
-      return;
-    }
-
-    capturedSubtitles = segments;
-    console.log('[YT Transcript] Captured', segments.length, 'segments, sending to background');
-    runtime.runtime.sendMessage({ action: 'subtitlesAvailable', lang: lang.toUpperCase() });
-  } catch (e) {
-    console.error('[YT Transcript] Failed:', e);
+  const segments = parseSubtitleData(data);
+  if (segments.length === 0) {
+    console.log('[YT Transcript] No segments found, skipping');
+    return;
   }
-});
 
-// Detect video page on initial load and YouTube SPA navigation
-notifyVideoPage();
-window.addEventListener('yt-navigate-finish', notifyVideoPage);
+  capturedSubtitles = segments;
+  console.log('[YT Transcript] Captured', segments.length, 'segments, sending to background');
+  runtime.runtime.sendMessage({ action: 'subtitlesAvailable', lang: lang.toUpperCase() });
+});

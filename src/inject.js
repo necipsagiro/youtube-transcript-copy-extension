@@ -14,7 +14,7 @@ XMLHttpRequest.prototype.send = function(body) {
   if (url && typeof url === 'string' &&
       (url.includes('/api/timedtext') || url.includes('timedtext')) &&
       !url.includes('type=list') &&
-      url.includes('lang=')) {
+      (url.includes('lang=') || url.includes('tlang='))) {
 
     this.addEventListener('load', function() {
       console.log('[YT Transcript] Captured subtitle response for:', url);
