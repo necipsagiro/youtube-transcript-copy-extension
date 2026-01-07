@@ -41,14 +41,14 @@ The transcript is copied with timestamps:
 [0:07] Today we'll talk about...
 ```
 
-### Copy Video URL
+### Auto-Clean Shared Links
 
-1. Go to any YouTube video or Shorts
-2. Right-click anywhere on the page
-3. Click "Copy video URL"
-4. Paste the clean URL (e.g., `https://youtu.be/VIDEO_ID`)
+When you use YouTube's native **Share → Copy** button, tracking parameters (`si`, `feature`, etc.) are automatically removed from the copied link.
 
-This copies a clean short URL without tracking parameters (like `si=`, `utm_source`, etc.).
+**Before:** `https://youtu.be/VIDEO_ID?si=abc123`
+**After:** `https://youtu.be/VIDEO_ID`
+
+No extra steps needed - just share as usual and get clean links.
 
 ## How it works
 
