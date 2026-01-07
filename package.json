@@ -12,7 +12,7 @@
     "build:chrome": "mkdir -p dist && cd src && zip -r ../dist/chrome-extension.zip . -x '*.DS_Store'"
   },
   "devDependencies": {
-    "prettier": "^3.5.0",
+    "prettier": "^3.7.4",
     "web-ext": "^9.2.0"
   },
   "prettier": {
