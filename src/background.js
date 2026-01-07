@@ -6,8 +6,11 @@ runtime.runtime.onInstalled.addListener(() => {
     id: 'yt-copy-transcript',
     title: 'Copy Transcript',
     contexts: ['page'],
-    documentUrlPatterns: ['https://www.youtube.com/watch*', 'https://youtube.com/watch*'],
-    enabled: false
+    documentUrlPatterns: [
+      'https://www.youtube.com/watch*',
+      'https://youtube.com/watch*',
+    ],
+    enabled: false,
   });
 });
 
@@ -19,17 +22,27 @@ runtime.contextMenus.onClicked.addListener((info, tab) => {
 
 runtime.runtime.onMessage.addListener((message, _sender, _sendResponse) => {
   if (message.action === 'subtitlesAvailable') {
-    console.log('[YT Transcript BG] Received message, updating menu to:', message.lang);
-    runtime.contextMenus.update('yt-copy-transcript', {
-      enabled: true,
-      title: `Copy Transcript [${message.lang || '?'}]`
-    }, () => {
-      if (runtime.runtime.lastError) {
-        console.error('[YT Transcript BG] Menu update failed:', runtime.runtime.lastError);
-      } else {
-        console.log('[YT Transcript BG] Menu updated successfully');
-      }
-    });
+    console.log(
+      '[YT Transcript BG] Received message, updating menu to:',
+      message.lang,
+    );
+    runtime.contextMenus.update(
+      'yt-copy-transcript',
+      {
+        enabled: true,
+        title: `Copy Transcript [${message.lang || '?'}]`,
+      },
+      () => {
+        if (runtime.runtime.lastError) {
+          console.error(
+            '[YT Transcript BG] Menu update failed:',
+            runtime.runtime.lastError,
+          );
+        } else {
+          console.log('[YT Transcript BG] Menu updated successfully');
+        }
+      },
+    );
   }
 
   return true;

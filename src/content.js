@@ -16,7 +16,7 @@ function msToTime(ms) {
 
 function segmentsToReadableText(segments) {
   return segments
-    .map(seg => `[${msToTime(seg.start)}] ${seg.text}`)
+    .map((seg) => `[${msToTime(seg.start)}] ${seg.text}`)
     .join('\n');
 }
 
@@ -30,7 +30,7 @@ function parseSubtitleData(text) {
     if (!evt.segs || evt.segs.length === 0) continue;
 
     const text = evt.segs
-      .map(seg => seg.utf8 || '')
+      .map((seg) => seg.utf8 || '')
       .join('')
       .trim();
 
@@ -38,7 +38,7 @@ function parseSubtitleData(text) {
 
     segments.push({
       start: evt.tStartMs || 0,
-      text: text
+      text: text,
     });
   }
 
@@ -47,7 +47,11 @@ function parseSubtitleData(text) {
 
 function getLanguageFromUrl(url) {
   const urlObj = new URL(url);
-  return urlObj.searchParams.get('tlang') || urlObj.searchParams.get('lang') || 'unknown';
+  return (
+    urlObj.searchParams.get('tlang') ||
+    urlObj.searchParams.get('lang') ||
+    'unknown'
+  );
 }
 
 runtime.runtime.onMessage.addListener(async (message) => {
@@ -69,6 +73,13 @@ window.addEventListener('yt-transcript-data-captured', (event) => {
   }
 
   capturedSubtitles = segments;
-  console.log('[YT Transcript] Captured', segments.length, 'segments, sending to background');
-  runtime.runtime.sendMessage({ action: 'subtitlesAvailable', lang: lang.toUpperCase() });
+  console.log(
+    '[YT Transcript] Captured',
+    segments.length,
+    'segments, sending to background',
+  );
+  runtime.runtime.sendMessage({
+    action: 'subtitlesAvailable',
+    lang: lang.toUpperCase(),
+  });
 });

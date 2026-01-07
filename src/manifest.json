@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "YouTube Transcript Copy",
-  "version": "1.6",
-  "description": "Copy YouTube subtitles via right-click menu",
+  "version": "1.7",
+  "description": "Copy YouTube subtitles via right-click menu & auto-clean tracking params from copied links",
   "browser_specific_settings": {
     "gecko": {
       "id": "parsers_frailer8k@icloud.com",
@@ -18,10 +18,7 @@
     "128": "icons/icon128.png"
   },
   "permissions": ["contextMenus"],
-  "host_permissions": [
-    "https://www.youtube.com/*",
-    "https://*.youtube.com/*"
-  ],
+  "host_permissions": ["https://www.youtube.com/*", "https://*.youtube.com/*"],
   "background": {
     "service_worker": "background.js",
     "scripts": ["background.js"]
