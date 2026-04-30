@@ -48,6 +48,11 @@ When you use YouTube's native **Share → Copy** button, tracking parameters (`s
 **Before:** `https://youtu.be/VIDEO_ID?si=abc123`
 **After:** `https://youtu.be/VIDEO_ID`
 
+Shorts links are also converted to standard watch URLs:
+
+**Before:** `https://youtube.com/shorts/VIDEO_ID`
+**After:** `https://www.youtube.com/watch?v=VIDEO_ID`
+
 No extra steps needed - just share as usual and get clean links.
 
 ## How it works
