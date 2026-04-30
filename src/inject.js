@@ -4,26 +4,11 @@ document.addEventListener(
   'copy',
   function (e) {
     const text = window.getSelection()?.toString() || '';
-
-    if (!text || (!text.includes('youtube.com') && !text.includes('youtu.be')))
-      return;
-
-    try {
-      const url = new URL(text);
-      [
-        'si',
-        'feature',
-        'pp',
-        'embeds_referring_euri',
-        'source_ve_path',
-      ].forEach((p) => url.searchParams.delete(p));
-
-      const cleaned = url.toString();
-      if (cleaned !== text) {
-        e.preventDefault();
-        e.clipboardData.setData('text/plain', cleaned);
-      }
-    } catch (e) {}
+    const cleaned = cleanYouTubeUrl(text);
+    if (cleaned !== text) {
+      e.preventDefault();
+      e.clipboardData.setData('text/plain', cleaned);
+    }
   },
   true,
 );
